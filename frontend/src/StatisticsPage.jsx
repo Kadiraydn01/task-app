@@ -30,7 +30,7 @@ export default function StatisticsPage() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/tasks/by-day")
+    fetch("https://task-app-e1t6.onrender.com/api/tasks/by-day")
       .then((res) => res.json())
       .then((json) => {
         setData(json);

@@ -63,11 +63,14 @@ export default function RecordPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/tasks/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toSend),
-      });
+      const res = await fetch(
+        "https://task-app-e1t6.onrender.com/api/tasks/save",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(toSend),
+        }
+      );
 
       const result = await res.json();
       alert(result.message || "Kayıt tamamlandı.");
@@ -120,12 +123,13 @@ export default function RecordPage() {
                 onChange={(e) => handleValueChange(index, e.target.value)}
                 onClick={(e) => e.stopPropagation()}
                 className={`w-20 text-center rounded-lg border px-3 py-2 transition-colors duration-300
-                  focus:outline-none focus:ring-2 focus:ring-blue-500
-                  ${
-                    isChecked
-                      ? "bg-green-100 border-hidden focus:border-green-500"
-                      : "bg-white border-gray-300"
-                  }`}
+    focus:outline-none focus:ring-2 focus:ring-blue-500
+    appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none
+    ${
+      isChecked
+        ? "bg-green-100 border-hidden focus:border-green-500"
+        : "bg-white border-gray-300"
+    }`}
               />
 
               <input
