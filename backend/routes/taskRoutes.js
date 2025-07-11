@@ -1,23 +1,28 @@
-// routes/taskRoutes.js
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
-const mongoose = require("mongoose");
 
-const formatDate = (date) => {
-  return date.toISOString().split("T")[0]; // "2025-07-10"
+// Yardımcı fonksiyon: Türkiye saatine göre YYYY-MM-DD döndürür
+const getLocalDateString = (date) => {
+  return new Date(date)
+    .toLocaleDateString("tr-TR", {
+      timeZone: "Europe/Istanbul",
+    })
+    .split(".")
+    .reverse()
+    .join("-"); // "YYYY-MM-DD"
 };
 
 router.post("/save", async (req, res) => {
   const data = req.body; // [{ task, value }]
 
-  const today = new Date();
-  const todayDateString = today.toISOString().split("T")[0]; // "2025-07-10"
+  const now = new Date();
+  const todayDateString = getLocalDateString(now); // Türkiye saatine göre "YYYY-MM-DD"
 
   try {
     const ops = data.map(({ task, value }) => {
-      const startOfDay = new Date(todayDateString + "T00:00:00.000Z");
-      const endOfDay = new Date(todayDateString + "T23:59:59.999Z");
+      const startOfDay = new Date(`${todayDateString}T00:00:00+03:00`);
+      const endOfDay = new Date(`${todayDateString}T23:59:59+03:00`);
 
       return {
         updateOne: {
@@ -44,7 +49,7 @@ router.post("/save", async (req, res) => {
   }
 });
 
-// GET: Tüm görevleri ve değerlerini getir
+// Tüm görevleri getir
 router.get("/", async (req, res) => {
   try {
     const tasks = await Task.find().sort({ createdAt: -1 });
@@ -55,6 +60,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Günlük gruplama
 router.get("/by-day", async (req, res) => {
   try {
     const allTasks = await Task.find();
@@ -62,7 +68,7 @@ router.get("/by-day", async (req, res) => {
     const grouped = {};
 
     allTasks.forEach((item) => {
-      const dateKey = item.createdAt.toISOString().split("T")[0]; // YYYY-MM-DD
+      const dateKey = getLocalDateString(item.createdAt); // yerel tarih
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
@@ -79,24 +85,26 @@ router.get("/by-day", async (req, res) => {
   }
 });
 
-// GET: Son 7 güne ait toplamlar
+// Haftalık toplamlar
 router.get("/weekly", async (req, res) => {
-  const today = new Date();
+  const now = new Date();
+  const todayDateString = getLocalDateString(now);
   const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(today.getDate() - 6);
+  sevenDaysAgo.setDate(now.getDate() - 6);
+  const startDateString = getLocalDateString(sevenDaysAgo);
 
   try {
     const tasks = await Task.find({
       createdAt: {
-        $gte: new Date(sevenDaysAgo.setHours(0, 0, 0, 0)),
-        $lte: new Date(today.setHours(23, 59, 59, 999)),
+        $gte: new Date(`${startDateString}T00:00:00+03:00`),
+        $lte: new Date(`${todayDateString}T23:59:59+03:00`),
       },
     });
 
     const summary = {};
 
     tasks.forEach((task) => {
-      const dateKey = task.createdAt.toISOString().split("T")[0];
+      const dateKey = getLocalDateString(task.createdAt); // yerel tarih
 
       if (!summary[dateKey]) {
         summary[dateKey] = {
@@ -118,6 +126,8 @@ router.get("/weekly", async (req, res) => {
     res.status(500).json({ error: "Haftalık veriler alınamadı." });
   }
 });
+
+// Tüm görevleri sil
 router.delete("/all", async (req, res) => {
   try {
     await Task.deleteMany({});
