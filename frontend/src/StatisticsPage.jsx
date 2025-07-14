@@ -73,48 +73,90 @@ export default function StatisticsPage() {
           Geri Dön
         </button>
       </div>
+
       {sortedDates.length === 0 ? (
         <p className="text-center text-gray-600">Henüz kayıt yok.</p>
       ) : (
-        <table className="min-w-full bg-white border border-collapse border-gray-300 rounded shadow table-auto">
-          <thead>
-            <tr>
-              <th className="sticky left-0 z-10 p-2 text-left bg-white border border-gray-300">
-                Tarih
-              </th>
-              {tasks.map((task) => (
-                <th
-                  key={task}
-                  className="sticky top-0 z-10 p-2 text-center bg-white border border-gray-300"
-                >
-                  {task}
+        <>
+          <table className="min-w-full mt-6 bg-white border border-collapse border-gray-300 rounded shadow table-auto">
+            <thead>
+              <tr>
+                <th className="sticky left-0 z-10 p-2 text-left bg-white border border-gray-300">
+                  Tarih
                 </th>
+                {tasks.map((task) => (
+                  <th
+                    key={task}
+                    className="sticky top-0 z-10 p-2 text-center bg-white border border-gray-300"
+                  >
+                    {task}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sortedDates.map((date) => (
+                <tr key={date} className="hover:bg-gray-100">
+                  <td className="sticky left-0 z-10 p-2 font-semibold bg-white border border-gray-300">
+                    {date}
+                  </td>
+                  {tasks.map((task) => {
+                    const found = data[date]?.find(
+                      (item) => item.task === task
+                    );
+                    const value = found ? found.value : 0;
+                    return (
+                      <td
+                        key={task}
+                        className="p-2 font-mono text-center border border-gray-300"
+                      >
+                        {value}
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sortedDates.map((date) => (
-              <tr key={date} className="hover:bg-gray-100">
-                <td className="sticky left-0 z-10 p-2 font-semibold bg-white border border-gray-300">
-                  {date}
+
+              {/* Toplam Satırı */}
+              <tr className="font-bold bg-green-400 hover:bg-green-200">
+                <td className="sticky left-0 z-10 p-2 border-gray-300 ">
+                  Toplam
                 </td>
                 {tasks.map((task) => {
-                  // Veride ilgili gün ve task varsa değeri al, yoksa 0 göster
-                  const found = data[date]?.find((item) => item.task === task);
-                  const value = found ? found.value : 0;
+                  let total = 0;
+                  sortedDates.forEach((date) => {
+                    const found = data[date]?.find(
+                      (item) => item.task === task
+                    );
+                    total += found ? found.value : 0;
+                  });
                   return (
                     <td
                       key={task}
-                      className="p-2 font-mono text-center border border-gray-300"
+                      className="p-2 font-mono text-center border border-gray-300 "
                     >
-                      {value}
+                      {total}
                     </td>
                   );
                 })}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+
+          {/* Genel Toplam */}
+          <p className="p-4 mt-6 text-xl font-semibold text-center text-white rounded-lg shadow-lg bg-black/60">
+            Genel Toplam ={" "}
+            {tasks.reduce((acc, task) => {
+              return (
+                acc +
+                sortedDates.reduce((sum, date) => {
+                  const found = data[date]?.find((item) => item.task === task);
+                  return sum + (found ? found.value : 0);
+                }, 0)
+              );
+            }, 0)}
+          </p>
+        </>
       )}
     </div>
   );
