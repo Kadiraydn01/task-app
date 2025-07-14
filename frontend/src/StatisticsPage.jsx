@@ -5,6 +5,7 @@ const tasks = [
   "Cardiology",
   "Neurology",
   "ENT",
+  "Infectious",
   "Respiratory",
   "Psychiatry",
   "Ophthalmology",
